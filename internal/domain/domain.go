@@ -39,11 +39,21 @@ func (tp *TradingPair) Add(p Price) error {
 	return nil
 }
 
+func (tp *TradingPair) Listen(c chan Price, logger *log.Logger) {
+	for msg := range c {
+		err := tp.Add(msg)
+		if err != nil {
+		}
+		logger.Println(fmt.Sprintf("Wrap %s: %f", tp.Name, tp.VWAP()))
+	}
+}
+
 func (tp *TradingPair) dropOldest() {
 	oldestMatch := tp.Prices[0]
 	tp.Size -= oldestMatch.Size
 	tp.Volume -= oldestMatch.Size * oldestMatch.Price
 }
+
 func (tp *TradingPair) isFull() bool {
 	return len(tp.Prices) == tp.WindowSize
 }
