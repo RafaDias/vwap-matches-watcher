@@ -39,6 +39,11 @@ func (tp *TradingPair) Add(p Price) error {
 	return nil
 }
 
+func (tp *TradingPair) dropOldest() {
+	oldestMatch := tp.Prices[0]
+	tp.Size -= oldestMatch.Size
+	tp.Volume -= oldestMatch.Size * oldestMatch.Price
+}
 func (tp *TradingPair) isFull() bool {
 	return len(tp.Prices) == tp.WindowSize
 }
