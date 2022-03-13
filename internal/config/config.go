@@ -1,9 +1,9 @@
 package config
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type Exchange struct {
@@ -18,27 +18,35 @@ type Config struct {
 	DebugPort string `json:"debug_port"`
 }
 
-func Parse() (*Config, error) {
-	return fileToConfig("config/config.json")
+func New() *Config{
+	return &Config{
+		Exchange: Exchange{
+			BaseUrl: getEnv("COINBASE_BASE_URL", ""),
+			WindowSize: getEnvAsInt("WINDOW_SIZE", 10),
+			Channels: getEnvAsArray("CHANNELS", ","),
+			Subscriptions: getEnvAsArray("SUBSCRIPTIONS", ","),
+		},
+		DebugPort: getEnv("DEBUG_PORT", "12000"),
+	}
 }
 
-func FromPath(url string) (*Config, error) {
-	return fileToConfig(url)
+func getEnv(key string, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultValue
 }
 
-func fileToConfig(path string) (*Config, error) {
-	jsonFile, err := os.Open(path)
-	if err != nil {
-		return nil, err
+func getEnvAsArray(name string, sep string) []string {
+	values := getEnv(name, "")
+	val := strings.Split(values, sep)
+	return val
+}
+
+func getEnvAsInt(name string, defaultVal int) int {
+	valueStr := getEnv(name, "")
+	if value, err := strconv.Atoi(valueStr); err == nil {
+		return value
 	}
-	defer jsonFile.Close()
-
-	rawFile, _ := ioutil.ReadAll(jsonFile)
-	var config Config
-
-	if err = json.Unmarshal(rawFile, &config); err != nil {
-		return nil, err
-	}
-
-	return &config, nil
+	return defaultVal
 }
