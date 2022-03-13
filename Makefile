@@ -1,5 +1,5 @@
 app:
-	docker build -f deployments/docker/Dockerfile -t crypto-watcher:1.0.0 --build-arg BUILD_REF=1.0.0 .
+	docker build -f build/package/Dockerfile -t crypto-watcher:1.0.0 --build-arg BUILD_REF=1.0.0 .
 
 KIND_CLUSTER := crypto-watcher-cluster
 
