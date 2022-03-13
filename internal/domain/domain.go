@@ -12,6 +12,13 @@ type Price struct {
 	Size  float64
 }
 
+type Transaction struct {
+	ProductId string `json:"product_id"`
+	Price     float64 `json:"price"`
+	Size      string  `json:"size"`
+	Time      time.Time `json:"time"`
+}
+
 type TradingPair struct {
 	Name       string
 	Prices     []Price
