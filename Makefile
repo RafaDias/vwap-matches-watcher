@@ -26,3 +26,12 @@ kind-logs:
 
 kind-restart:
 	kubectl rollout restart deployment crypto-watcher --namespace=crypto-watcher
+
+debug:
+	expvarmon --ports=12000
+
+build:
+	go build -o cmd/crypto-watcher/crypto-watcher cmd/crypto-watcher/main.go
+
+run:
+	go run cmd/crypto-watcher/main.go
