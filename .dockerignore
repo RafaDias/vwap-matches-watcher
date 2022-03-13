@@ -1,0 +1,8 @@
+.circleci/
+.git/
+.dockerignore
+.gitignore
+deployments/docker/
+deployments/k8s/
+Makefile
+README.md
