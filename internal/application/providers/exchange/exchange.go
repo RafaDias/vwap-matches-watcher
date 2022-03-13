@@ -7,6 +7,8 @@ import (
 type Service interface {
 	ListenTransactions(chan domain.Transaction) error
 	GetSubscriptions() []string
+	GetChannels() []string
+	Close() error
 }
 
 type Config struct {

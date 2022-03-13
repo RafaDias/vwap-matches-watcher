@@ -21,6 +21,14 @@ type service struct {
 	channels []string
 }
 
+func (s *service) GetChannels() []string {
+	return s.channels
+}
+
+func (s *service) Close() error {
+	return s.client.Close()
+}
+
 func (s *service) GetSubscriptions() []string {
 	return s.subscriptions
 }
