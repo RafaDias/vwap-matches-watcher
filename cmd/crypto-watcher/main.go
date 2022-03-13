@@ -3,6 +3,7 @@ package main
 import (
 	"expvar"
 	"fmt"
+	"github.com/joho/godotenv"
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	watch_matches "github.com/rafadias/crypto-watcher/internal/application/usecase/watch-matches"
 	"github.com/rafadias/crypto-watcher/internal/config"
@@ -29,15 +30,16 @@ func run(log *log.Logger) error {
 	log.Println("starting crypto watcher", build)
 	defer log.Println("crypto watcher ended")
 
-	cfg, err := config.Parse()
-	if err != nil {
-		return err
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
 	}
+
+	cfg := config.New()
 
 	log.Println("main: Starting debugging support")
 	go func() {
 		log.Println("main: Debug listening on port: ", cfg.DebugPort)
-		if err = http.ListenAndServe(fmt.Sprintf(":%s", cfg.DebugPort), http.DefaultServeMux); err != nil {
+		if err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.DebugPort), http.DefaultServeMux); err != nil {
 			log.Printf("main: Debug closed: %v", err)
 		}
 	}()
