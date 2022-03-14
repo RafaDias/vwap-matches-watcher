@@ -2,6 +2,8 @@
 
 Find vwap given subscriptions
 
+[![CircleCI](https://circleci.com/gh/RafaDias/vwap-matches-watcher/tree/main.svg?style=shield)](https://circleci.com/gh/RafaDias/vwap-matches-watcher/tree/main)
+
 ## How to config?
 1. Clone the repository
 2. Copy the .env.example in root directory with name .env
