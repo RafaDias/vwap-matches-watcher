@@ -20,8 +20,9 @@ make run
 TBD.
 
 ## The Architecture
-
-TBD.
+### Overview
+![Alt text](static/diagram.svg)
+<img src="./controllers_brief.svg">
 
 ## Demo
   TBD.
