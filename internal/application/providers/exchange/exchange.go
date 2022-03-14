@@ -1,3 +1,4 @@
+// Package exchange provides an exchange API.
 package exchange
 
 import (
@@ -12,7 +13,7 @@ type Service interface {
 }
 
 type Config struct {
-	BaseUrl string
-	Channels []string
+	BaseURL       string
+	Channels      []string
 	Subscriptions []string
 }

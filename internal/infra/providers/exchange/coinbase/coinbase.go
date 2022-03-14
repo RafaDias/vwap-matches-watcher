@@ -1,24 +1,26 @@
+// Package coinbase should implement exchange APi and allow access to coinbase platform
 package coinbase
 
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
+
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/domain"
 	"golang.org/x/net/websocket"
-	"log"
-	"strconv"
 )
 
 const (
-	host  = "http://localhost"
+	host = "http://localhost"
 )
 
 type service struct {
-	client *websocket.Conn
-	log *log.Logger
+	client        *websocket.Conn
+	log           *log.Logger
 	subscriptions []string
-	channels []string
+	channels      []string
 }
 
 func (s *service) GetChannels() []string {
@@ -58,7 +60,7 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 }
 
 func New(config exchange.Config) (exchange.Service, error) {
-	conn, err := websocket.Dial(config.BaseUrl, "", host)
+	conn, err := websocket.Dial(config.BaseURL, "", host)
 	if err != nil {
 		log.Println("error trying to connect to coinbase")
 		return nil, err
@@ -66,8 +68,8 @@ func New(config exchange.Config) (exchange.Service, error) {
 	log.Println("init exchange with config: ", config)
 
 	return &service{
-		client: conn,
-		channels: config.Channels,
+		client:        conn,
+		channels:      config.Channels,
 		subscriptions: config.Subscriptions,
 	}, nil
 }
@@ -78,10 +80,10 @@ func translateResponseToDomain(response Response) domain.Transaction {
 		log.Fatal("err trying to convert price")
 	}
 	return domain.Transaction{
-		ProductId: response.ProductID,
+		ProductID: response.ProductID,
 		Price:     price,
-		Size: response.Size,
-		Time: response.Time,
+		Size:      response.Size,
+		Time:      response.Time,
 	}
 }
 

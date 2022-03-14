@@ -1,3 +1,5 @@
+// Package domain is the hearth for project
+// It provides a principal layer.
 package domain
 
 import (
@@ -13,9 +15,9 @@ type Price struct {
 }
 
 type Transaction struct {
-	ProductId string `json:"product_id"`
-	Price     float64 `json:"price"`
-	Size      string  `json:"size"`
+	ProductID string    `json:"product_id"`
+	Price     float64   `json:"price"`
+	Size      string    `json:"size"`
 	Time      time.Time `json:"time"`
 }
 
@@ -50,6 +52,7 @@ func (tp *TradingPair) Listen(c chan Price, logger *log.Logger) {
 	for msg := range c {
 		err := tp.Add(msg)
 		if err != nil {
+			logger.Fatal("cannot add item")
 		}
 		logger.Println(fmt.Sprintf("Wrap %s: %f", tp.Name, tp.VWAP()))
 	}

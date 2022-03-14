@@ -1,10 +1,10 @@
+// Package memory implements an exchange API for testing purposes
 package memory
 
 import (
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/domain"
 )
-
 
 type inmemoryExchange struct {
 	subscriptions []string
@@ -22,17 +22,17 @@ func (i *inmemoryExchange) Close() error {
 func (i *inmemoryExchange) ListenTransactions(transactions chan domain.Transaction) error {
 	txns := []domain.Transaction{
 		{
-			ProductId: i.subscriptions[0],
+			ProductID: i.subscriptions[0],
 			Price:     10.00,
 			Size:      "0.10",
 		},
 		{
-			ProductId: i.subscriptions[1],
+			ProductID: i.subscriptions[1],
 			Price:     20.00,
 			Size:      "0.3",
 		},
 		{
-			ProductId: i.subscriptions[2],
+			ProductID: i.subscriptions[2],
 			Price:     10.00,
 			Size:      "0.01",
 		},

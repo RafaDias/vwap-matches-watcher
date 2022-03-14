@@ -1,20 +1,22 @@
-package watch_matches
+// Package watchmatches provides an usecase API.
+package watchmatches
 
 import (
-	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
-	"github.com/rafadias/crypto-watcher/internal/domain"
 	"log"
 	"strconv"
+
+	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
+	"github.com/rafadias/crypto-watcher/internal/domain"
 )
 
 type subscription struct {
-	price chan domain.Price
+	price       chan domain.Price
 	tradingPair *domain.TradingPair
 }
 
 type watchMatcherUseCase struct {
-	log      *log.Logger
-	exchange exchange.Service
+	log           *log.Logger
+	exchange      exchange.Service
 	subscriptions map[string]subscription
 }
 
@@ -41,9 +43,9 @@ func (wm *watchMatcherUseCase) watch() {
 	}()
 
 	for txn := range transaction {
-		c, ok := wm.subscriptions[txn.ProductId]
+		c, ok := wm.subscriptions[txn.ProductID]
 		if !ok {
-
+			wm.log.Fatal("error")
 		}
 		size, err := strconv.ParseFloat(txn.Size, 64)
 		if err != nil {
@@ -54,11 +56,11 @@ func (wm *watchMatcherUseCase) watch() {
 	}
 }
 
-func (wm *watchMatcherUseCase) setupSubscriptions(windowSize int)  {
+func (wm *watchMatcherUseCase) setupSubscriptions(windowSize int) {
 	tps := make(map[string]subscription)
 	for _, name := range wm.exchange.GetSubscriptions() {
 		tp := domain.TradingPair{
-			Name: name,
+			Name:       name,
 			WindowSize: windowSize,
 		}
 		incomingMatches := make(chan domain.Price)
@@ -68,7 +70,7 @@ func (wm *watchMatcherUseCase) setupSubscriptions(windowSize int)  {
 	wm.subscriptions = tps
 }
 
-func (wm *watchMatcherUseCase) GetVWAP () map[string]float64{
+func (wm *watchMatcherUseCase) GetVWAP() map[string]float64 {
 	vwap := make(map[string]float64)
 	for _, subscription := range wm.subscriptions {
 		vwap[subscription.tradingPair.Name] = subscription.tradingPair.VWAP()

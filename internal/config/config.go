@@ -1,3 +1,4 @@
+// Package config provides an abstraction for the project's configurable items
 package config
 
 import (
@@ -7,23 +8,23 @@ import (
 )
 
 type Exchange struct {
-	BaseUrl string `json:"base_url"`
-	WindowSize int `json:"window_size"`
-	Channels []string `json:"channels"`
+	BaseURL       string   `json:"base_url"`
+	WindowSize    int      `json:"window_size"`
+	Channels      []string `json:"channels"`
 	Subscriptions []string `json:"subscriptions"`
 }
 
 type Config struct {
-	Exchange Exchange
+	Exchange  Exchange
 	DebugPort string `json:"debug_port"`
 }
 
-func New() *Config{
+func New() *Config {
 	return &Config{
 		Exchange: Exchange{
-			BaseUrl: getEnv("COINBASE_BASE_URL", ""),
-			WindowSize: getEnvAsInt("WINDOW_SIZE", 10),
-			Channels: getEnvAsArray("CHANNELS", ","),
+			BaseURL:       getEnv("COINBASE_BASE_URL", ""),
+			WindowSize:    getEnvAsInt("WINDOW_SIZE", 10),
+			Channels:      getEnvAsArray("CHANNELS", ","),
 			Subscriptions: getEnvAsArray("SUBSCRIPTIONS", ","),
 		},
 		DebugPort: getEnv("DEBUG_PORT", "12000"),

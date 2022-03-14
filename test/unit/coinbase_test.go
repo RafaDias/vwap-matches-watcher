@@ -19,7 +19,7 @@ func TestService_Connect_With_Correct_Values(t *testing.T) {
 	cfg := config.New()
 
 	svc, err := coinbase.New(exchange.Config{
-		BaseUrl:       cfg.Exchange.BaseUrl,
+		BaseURL:       cfg.Exchange.BaseURL,
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
 	})
@@ -36,7 +36,7 @@ func TestService_WrongConnectionMustReturnAnError(t *testing.T) {
 	cfg := config.New()
 
 	_, err := coinbase.New(exchange.Config{
-		BaseUrl:       "wss:/wrong-host/with-wrong-path",
+		BaseURL:       "wss:/wrong-host/with-wrong-path",
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
 	})

@@ -1,7 +1,7 @@
 package integration
 
 import (
-	"github.com/rafadias/crypto-watcher/internal/application/usecase/watch-matches"
+	"github.com/rafadias/crypto-watcher/internal/application/usecase/watchmatches"
 	"github.com/rafadias/crypto-watcher/internal/infra/providers/exchange/memory"
 	"github.com/stretchr/testify/assert"
 	"log"
@@ -14,7 +14,7 @@ func TestWatchMatcherUseCase_Execute(t *testing.T) {
 	channels := []string{"matches"}
 	inmemoryExchange := memory.New(subscriptions, channels)
 	log := log.New(os.Stdout, "Running tests: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
-	svc := watch_matches.New(log, inmemoryExchange, 1)
+	svc := watchmatches.New(log, inmemoryExchange, 1)
 	svc.Execute()
 
 	vwaps := svc.GetVWAP()
