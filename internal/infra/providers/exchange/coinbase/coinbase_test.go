@@ -1,24 +1,24 @@
-package unit
+package coinbase
 
 import (
 	"github.com/joho/godotenv"
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/config"
-	"github.com/rafadias/crypto-watcher/internal/infra/providers/exchange/coinbase"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"testing"
 )
 
+const filePath = "../../../../../.env"
 
 func TestService_Connect_With_Correct_Values(t *testing.T) {
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(filePath); err != nil {
 		log.Print("No .env file found")
 	}
 
 	cfg := config.New()
 
-	svc, err := coinbase.New(exchange.Config{
+	svc, err := New(exchange.Config{
 		BaseURL:       cfg.Exchange.BaseURL,
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
@@ -29,13 +29,13 @@ func TestService_Connect_With_Correct_Values(t *testing.T) {
 }
 
 func TestService_WrongConnectionMustReturnAnError(t *testing.T) {
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load(filePath); err != nil {
 		log.Print("No .env file found")
 	}
 
 	cfg := config.New()
 
-	_, err := coinbase.New(exchange.Config{
+	_, err := New(exchange.Config{
 		BaseURL:       "wss:/wrong-host/with-wrong-path",
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
