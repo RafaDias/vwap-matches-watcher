@@ -4,8 +4,6 @@ package domain
 
 import (
 	"errors"
-	"fmt"
-	"log"
 	"time"
 )
 
@@ -48,15 +46,6 @@ func (tp *TradingPair) Add(p Price) error {
 	return nil
 }
 
-func (tp *TradingPair) Listen(c chan Price, logger *log.Logger) {
-	for msg := range c {
-		err := tp.Add(msg)
-		if err != nil {
-			logger.Fatal("cannot add item")
-		}
-		logger.Println(fmt.Sprintf("Wrap %s: %f", tp.Name, tp.VWAP()))
-	}
-}
 
 func (tp *TradingPair) dropOldest() {
 	oldestMatch := tp.Prices[0]

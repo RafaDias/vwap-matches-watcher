@@ -2,6 +2,7 @@
 package watchmatches
 
 import (
+	"fmt"
 	"log"
 	"strconv"
 
@@ -12,6 +13,16 @@ import (
 type subscription struct {
 	price       chan domain.Price
 	tradingPair *domain.TradingPair
+}
+
+func (s *subscription) Listen(c chan domain.Price, logger *log.Logger) {
+	for msg := range c {
+		err := s.tradingPair.Add(msg)
+		if err != nil {
+			logger.Fatal("cannot add item")
+		}
+		logger.Println(fmt.Sprintf("Wrap %s: %f", s.tradingPair.Name, s.tradingPair.VWAP()))
+	}
 }
 
 type watchMatcherUseCase struct {
@@ -64,8 +75,9 @@ func (wm *watchMatcherUseCase) setupSubscriptions(windowSize int) {
 			WindowSize: windowSize,
 		}
 		incomingMatches := make(chan domain.Price)
-		go tp.Listen(incomingMatches, wm.log)
-		tps[name] = subscription{tradingPair: &tp, price: incomingMatches}
+		sub := subscription{tradingPair: &tp, price: incomingMatches}
+		go sub.Listen(incomingMatches, wm.log)
+		tps[name] = sub
 	}
 	wm.subscriptions = tps
 }
