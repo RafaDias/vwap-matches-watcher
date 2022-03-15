@@ -58,10 +58,9 @@ func run(log *log.Logger) error {
 			log.Println("Err trying to create a coinbase instance", err)
 		}
 
-		watchMatchesUseCase := watch_matches.New(log, coinbaseExchange, cfg.Exchange.WindowSize)
-		watchMatchesUseCase.Execute()
+		watchMatchesUseCase := watch_matches.New(log, coinbaseExchange)
+		watchMatchesUseCase.Execute(cfg.Exchange.WindowSize)
 	}()
-
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	<-shutdown

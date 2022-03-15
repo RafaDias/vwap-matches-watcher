@@ -13,8 +13,8 @@ func TestWatchMatcherUseCase_Execute(t *testing.T) {
 	channels := []string{"matches"}
 	inmemoryExchange := memory.New(subscriptions, channels)
 	log := log.New(os.Stdout, "Running tests: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
-	svc := New(log, inmemoryExchange, 1)
-	svc.Execute()
+	svc := New(log, inmemoryExchange)
+	svc.Execute(1)
 
 	vwaps := svc.GetVWAP()
 	log.Println(vwaps)

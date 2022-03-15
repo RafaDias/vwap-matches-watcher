@@ -4,6 +4,7 @@ ARG BUILD_REF
 
 
 COPY . /crypto-watcher
+COPY ../../configs/.env.example /crypto-watcher/.env
 
 WORKDIR /crypto-watcher/cmd/crypto-watcher
 RUN go build -ldflags "-X main.build=${BUILD_REF}"

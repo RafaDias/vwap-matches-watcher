@@ -36,10 +36,10 @@ func (s *service) GetSubscriptions() []string {
 }
 
 func (s *service) ListenTransactions(c chan domain.Transaction) error {
+	defer close(c)
 	if err := s.subscribe(); err != nil {
 		return err
 	}
-
 	for {
 		var msg = make([]byte, 512) // 276B
 		bodyLength, err := s.client.Read(msg)
