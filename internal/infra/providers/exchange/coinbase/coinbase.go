@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/gorilla/websocket"
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/domain"
 	"golang.org/x/net/websocket"
@@ -44,16 +45,15 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 	}
 
 	for {
-		var msg = make([]byte, 512) // 276B
-		bodyLength, err := s.client.Read(msg)
+		_, msg, err := s.client.ReadMessage()
 		if err != nil {
 			s.log.Println(fmt.Errorf("fail to read incoming message: %v", err))
 			return err
 		}
 
 		var response Response
-		if err = json.Unmarshal(msg[:bodyLength], &response); err != nil {
-			s.log.Fatal("error trying to unmarshal response")
+		if err = json.Unmarshal(msg, &response); err != nil {
+			s.log.Println("error trying to unmarshal response:  ", string(msg))
 		}
 		if response.Type != Subscriptions {
 			trx, err := translateResponseToDomain(response)
@@ -72,7 +72,7 @@ func New(config exchange.Config, dial bool) (exchange.Service, error) {
 		dial:          dial,
 	}
 	if dial {
-		conn, err := websocket.Dial(config.BaseURL, "", host)
+		conn, _, err := websocket.DefaultDialer.Dial(config.BaseURL, nil)
 		if err != nil {
 			log.Println("error trying to connect to coinbase")
 			return nil, err
@@ -118,7 +118,7 @@ func (s *service) subscribe() (*Message, error) {
 	if err != nil {
 		s.log.Fatal("err trying to write subscribe message")
 	}
-	if _, err = s.client.Write(msg); err != nil {
+	if err = s.client.WriteMessage(websocket.TextMessage, msg); err != nil {
 		return nil, err
 	}
 
