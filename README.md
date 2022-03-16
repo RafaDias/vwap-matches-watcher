@@ -16,26 +16,41 @@ cp configs/.env.example .env
 
 ## How to run?
 
-### locally:
-```console
+
+<details>
+<summary>Locally</summary>
+
+  Just run this command in your terminal:
+
+```sh
 make run
 ```
+</details>
 
-### Using Docker:
-```console
+<details>
+<summary>Docker</summary>
+
+  Just run this command in your terminal:
+
+```sh
 make build
 docker run crypto-watcher:1.0.0
 ```
+</details>
 
-### Using KIND:
+<details>
+<summary>KIND (Kubernetes in docker)</summary>
+  
+  Just run this commands in your terminal:
 
-```console
+```sh
 make build      # creates a docker image for crypto-watcher 
 make kind-up    # creates a cluster to simulate k8s
 make kind-load  # load the crypto-watcher in envinroment
 make kind-apply # Create a deployment with that image
 make kind-logs  # Get logs from pods
 ```
+</details>
 
 ## How It Works
 TBD.
@@ -43,7 +58,21 @@ TBD.
 ## The Architecture
 ### Overview
 ![Alt text](static/diagram.svg)
-<img src="./controllers_brief.svg">
+
+
+This project was developed following the principles of `clean architecture` and golang standard layout:
+- [cmd/crypto-watcher](cmd/crypto-watcher) - It is the folder responsible for storing the main file and therefore the build itself;
+- [configs](configs) - Just a folder for configurations, link environment variables;
+- [deployments](deployments) - Packaging and Continuous Integration;
+- [build](build) - Packaging (Docker);
+- [internal](internal) - Project source files;
+- [static](static) - Static files, like images.
+
+The source code is organized as follows:
+- [application/usecase](internal/application/usecase) - Use cases orchestrate the flow of data to and from the entities, and direct those entities to use their Critical Business Rules to achieve the goals of the use case.
+- [application/providers](internal/application/providers) - Integration with a support service.
+- [domain](internal/domain) - The heart of the application. Contains the business rules.
+- [infra](internal/infra) - It is the "dirtiest" layer of the project. Contains implementations of domain layer abstractions
 
 ## Demo
   TBD.
