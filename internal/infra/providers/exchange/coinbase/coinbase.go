@@ -69,6 +69,7 @@ func New(config exchange.Config, dial bool) (exchange.Service, error) {
 	svc := &service{
 		channels:      config.Channels,
 		subscriptions: config.Subscriptions,
+		dial:          dial,
 	}
 	if dial {
 		conn, err := websocket.Dial(config.BaseURL, "", host)
