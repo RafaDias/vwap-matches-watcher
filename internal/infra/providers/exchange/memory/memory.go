@@ -24,17 +24,17 @@ func (i *inmemoryExchange) ListenTransactions(transactions chan domain.Transacti
 		{
 			ProductID: i.subscriptions[0],
 			Price:     10.00,
-			Size:      "0.10",
+			Size:      0.10,
 		},
 		{
 			ProductID: i.subscriptions[1],
 			Price:     20.00,
-			Size:      "0.3",
+			Size:      0.3,
 		},
 		{
 			ProductID: i.subscriptions[2],
 			Price:     10.00,
-			Size:      "0.01",
+			Size:      0.01,
 		},
 	}
 	for _, t := range txns {

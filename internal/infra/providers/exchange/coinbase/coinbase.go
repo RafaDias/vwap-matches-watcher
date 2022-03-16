@@ -21,6 +21,7 @@ type service struct {
 	log           *log.Logger
 	subscriptions []string
 	channels      []string
+	dial          bool
 }
 
 func (s *service) GetChannels() []string {
@@ -37,9 +38,11 @@ func (s *service) GetSubscriptions() []string {
 
 func (s *service) ListenTransactions(c chan domain.Transaction) error {
 	defer close(c)
-	if err := s.subscribe(); err != nil {
+
+	if _, err := s.subscribe(); err != nil {
 		return err
 	}
+
 	for {
 		var msg = make([]byte, 512) // 276B
 		bodyLength, err := s.client.Read(msg)
@@ -50,55 +53,73 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 
 		var response Response
 		if err = json.Unmarshal(msg[:bodyLength], &response); err != nil {
-			log.Fatal("error trying to unmarshal response")
+			s.log.Fatal("error trying to unmarshal response")
 		}
 		if response.Type != Subscriptions {
-			trx := translateResponseToDomain(response)
+			trx, err := translateResponseToDomain(response)
+			if err != nil {
+				s.log.Println("err trying to translate response", err)
+			}
 			c <- trx
 		}
 	}
 }
 
-func New(config exchange.Config) (exchange.Service, error) {
-	conn, err := websocket.Dial(config.BaseURL, "", host)
-	if err != nil {
-		log.Println("error trying to connect to coinbase")
-		return nil, err
-	}
-	log.Println("init exchange with config: ", config)
-
-	return &service{
-		client:        conn,
+func New(config exchange.Config, dial bool) (exchange.Service, error) {
+	svc := &service{
 		channels:      config.Channels,
 		subscriptions: config.Subscriptions,
-	}, nil
+	}
+	if dial {
+		conn, err := websocket.Dial(config.BaseURL, "", host)
+		if err != nil {
+			log.Println("error trying to connect to coinbase")
+			return nil, err
+		}
+		svc.client = conn
+	}
+
+	log.Println("init exchange with config: ", config)
+
+	return svc, nil
 }
 
-func translateResponseToDomain(response Response) domain.Transaction {
+func translateResponseToDomain(response Response) (domain.Transaction, error) {
 	price, err := strconv.ParseFloat(response.Price, 64)
 	if err != nil {
-		log.Fatal("err trying to convert price")
+		return domain.Transaction{}, domain.ErrCannotConvertPrice
 	}
+
+	size, err := strconv.ParseFloat(response.Size, 64)
+	if err != nil {
+		return domain.Transaction{}, domain.ErrCannotConvertSize
+	}
+
 	return domain.Transaction{
 		ProductID: response.ProductID,
 		Price:     price,
-		Size:      response.Size,
+		Size:      size,
 		Time:      response.Time,
-	}
+	}, nil
 }
 
-func (s *service) subscribe() error {
+func (s *service) subscribe() (*Message, error) {
 	subscriptionMessage := &Message{
 		Type:       Subscribe,
 		ProductIDs: s.subscriptions,
 		Channels:   s.channels,
 	}
+	if !s.dial {
+		return subscriptionMessage, nil
+	}
+
 	msg, err := json.Marshal(subscriptionMessage)
 	if err != nil {
-		log.Fatal()
+		s.log.Fatal("err trying to write subscribe message")
 	}
 	if _, err = s.client.Write(msg); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	return nil, nil
 }
