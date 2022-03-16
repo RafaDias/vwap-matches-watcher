@@ -57,7 +57,7 @@ TBD.
 
 ## The Architecture
 ### Overview
-![Alt text](static/diagram.svg)
+![Alt text](.images/diagram.svg)
 
 
 This project was developed following the principles of `clean architecture` and golang standard layout:
@@ -66,7 +66,7 @@ This project was developed following the principles of `clean architecture` and 
 - [deployments](deployments) - Packaging and Continuous Integration;
 - [build](build) - Packaging (Docker);
 - [internal](internal) - Project source files;
-- [static](static) - Static files, like images.
+- [static](.images) - Static files, like images.
 
 The source code is organized as follows:
 - [application/usecase](internal/application/usecase) - Use cases orchestrate the flow of data to and from the entities, and direct those entities to use their Critical Business Rules to achieve the goals of the use case.
