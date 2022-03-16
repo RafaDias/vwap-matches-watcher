@@ -3,9 +3,9 @@ module github.com/rafadias/crypto-watcher
 go 1.17
 
 require (
+	github.com/gorilla/websocket v1.5.0
 	github.com/joho/godotenv v1.4.0
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 )
 
 require (
