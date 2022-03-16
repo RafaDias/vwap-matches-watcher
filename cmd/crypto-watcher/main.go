@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"expvar"
 	"fmt"
 	"log"
@@ -28,16 +29,24 @@ func main() {
 }
 
 func run(log *log.Logger) error {
-	log.Println("starting crypto watcher", build)
-	defer log.Println("crypto watcher ended")
+
+	// =========================================================================
+	// Configuration
 
 	if err := godotenv.Load(); err != nil {
 		log.Print("No .env file found")
+		return err
 	}
-
 	cfg := config.New()
+	expvar.NewString("build").Set(build)
 
-	log.Println("main: Starting debugging support")
+	// =========================================================================
+	// Start Debug service
+
+	log.Println("main: Starting debugging service")
+
+	// Just a go func to enable debugging
+	// Start the service listening for debug requests.
 	go func() {
 		log.Println("main: Debug listening on port: ", cfg.DebugPort)
 		if err := http.ListenAndServe(fmt.Sprintf(":%s", cfg.DebugPort), http.DefaultServeMux); err != nil {
@@ -45,24 +54,40 @@ func run(log *log.Logger) error {
 		}
 	}()
 
-	expvar.NewString("build").Set(build)
+	// =========================================================================
+	// Setup App
+
+	log.Println("starting crypto watcher", build)
+	defer log.Println("crypto watcher ended")
+
+	coinbaseExchange, err := coinbase.New(exchange.Config{
+		BaseURL:       cfg.Exchange.BaseURL,
+		Channels:      cfg.Exchange.Channels,
+		Subscriptions: cfg.Exchange.Subscriptions,
+	}, true)
+	if err != nil {
+		log.Println("Err trying to create a coinbase instance", err)
+		return err
+	}
+
+	watchMatchesUseCase := watch_matches.New(log, coinbaseExchange)
+	ctx, cancelFunc := context.WithCancel(context.Background())
 
 	go func() {
-		log.Println("initializing service")
-		coinbaseExchange, err := coinbase.New(exchange.Config{
-			BaseURL:       cfg.Exchange.BaseURL,
-			Channels:      cfg.Exchange.Channels,
-			Subscriptions: cfg.Exchange.Subscriptions,
-		})
-		if err != nil {
-			log.Println("Err trying to create a coinbase instance", err)
-		}
-
-		watchMatchesUseCase := watch_matches.New(log, coinbaseExchange)
-		watchMatchesUseCase.Execute(cfg.Exchange.WindowSize)
+		watchMatchesUseCase.Execute(cfg.Exchange.WindowSize, ctx)
 	}()
+
+	// Make a channel to listen for an interrupt or terminate signal from the OS.
+	// Use a buffered channel because the signal package requires it.
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 	<-shutdown
+
+	// =========================================================================
+	// Handle shutdown
+	cancelFunc()                               // Signal cancellation to context.Context
+	watchMatchesUseCase.Wait()                 // Block here until are workers are done
+	log.Println(watchMatchesUseCase.GetVWAP()) // Get the last VWAP
+
 	return nil
 }
