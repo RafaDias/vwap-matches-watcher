@@ -5,6 +5,7 @@ import "time"
 const (
 	Subscribe     string = "subscribe"
 	Subscriptions string = "subscriptions"
+	Match         string = "match"
 )
 
 type Message struct {

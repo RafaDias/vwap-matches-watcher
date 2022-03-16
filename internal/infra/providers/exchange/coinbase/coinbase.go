@@ -56,7 +56,8 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 		if err = json.Unmarshal(msg, &response); err != nil {
 			s.log.Println("error trying to unmarshal response:  ", string(msg))
 		}
-		if response.Type != Subscriptions {
+
+		if response.Type == Match {
 			trx, err := translateResponseToDomain(response)
 			if err != nil {
 				s.log.Println("err trying to translate response", err)
