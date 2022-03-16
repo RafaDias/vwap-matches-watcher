@@ -15,7 +15,7 @@ type Price struct {
 type Transaction struct {
 	ProductID string    `json:"product_id"`
 	Price     float64   `json:"price"`
-	Size      string    `json:"size"`
+	Size      float64   `json:"size"`
 	Time      time.Time `json:"time"`
 }
 
@@ -45,7 +45,6 @@ func (tp *TradingPair) Add(p Price) error {
 
 	return nil
 }
-
 
 func (tp *TradingPair) dropOldest() {
 	oldestMatch := tp.Prices[0]
