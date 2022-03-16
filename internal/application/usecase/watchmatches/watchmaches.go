@@ -2,83 +2,94 @@
 package watchmatches
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/domain"
 )
 
-type subscription struct {
-	priceChannel chan domain.Price
-	tradingPair  *domain.TradingPair
-}
-
-func (s *subscription) listen(priceChan <-chan domain.Price, logger *log.Logger) {
-	for msg := range priceChan {
-		err := s.tradingPair.Add(msg)
-		if err != nil {
-			log.Printf("err %v trying to add item, it should compromise vwap value", err)
-		}
-		logger.Println(fmt.Sprintf("Wrap %s: %f", s.tradingPair.Name, s.tradingPair.VWAP()))
-	}
-}
-
 type watchMatcherUseCase struct {
-	log           *log.Logger
-	exchange      exchange.Service
-	subscriptions map[string]subscription
-	wg            sync.WaitGroup
+	log       *log.Logger
+	exchange  exchange.Service
+	consumers map[string]consumer
+	wg        *sync.WaitGroup
 }
 
 func New(log *log.Logger, exchange exchange.Service) *watchMatcherUseCase {
 	svc := &watchMatcherUseCase{
 		exchange: exchange,
 		log:      log,
+		wg:       new(sync.WaitGroup),
 	}
 	return svc
 }
 
-func (wm *watchMatcherUseCase) Execute(windowSize int) {
+func (wm *watchMatcherUseCase) Execute(windowSize int, ctx context.Context) {
 	wm.setupSubscriptions(windowSize)
-	wm.watch()
+	wm.watch(ctx)
 }
 
-func (wm *watchMatcherUseCase) watch() {
-	transaction := make(chan domain.Transaction)
-	wm.wg.Add(1)
-
-	go func() {
-		defer wm.wg.Done()
-		err := wm.exchange.ListenTransactions(transaction)
-		if err != nil {
-			wm.log.Fatal("error accours", err)
-		}
-	}()
-
-	for txn := range transaction {
-		c, ok := wm.subscriptions[txn.ProductID]
-		if !ok {
-			wm.log.Fatal("not a valid channel")
-		}
-		size, err := strconv.ParseFloat(txn.Size, 64)
-		if err != nil {
-			wm.log.Fatal("error parsing value", err)
-		}
-		c.priceChannel <- domain.Price{Price: txn.Price, Size: size}
-		wm.log.Println(txn)
-	}
-
-	for _, sub := range wm.subscriptions {
-		close(sub.priceChannel)
-	}
+func (wm *watchMatcherUseCase) Wait() {
 	wm.wg.Wait()
 }
 
+func (wm *watchMatcherUseCase) GetVWAP() map[string]float64 {
+	vwap := make(map[string]float64)
+	for _, subscription := range wm.consumers {
+		vwap[subscription.tradingPair.Name] = subscription.tradingPair.VWAP()
+	}
+	return vwap
+}
+
+func (wm *watchMatcherUseCase) watch(ctx context.Context) {
+	transaction := make(chan domain.Transaction)
+
+	go func() {
+		err := wm.exchange.ListenTransactions(transaction)
+		if err != nil {
+			wm.log.Fatal(fmt.Sprintf("err %s: details %s", domain.ErrCannotListenExchange.Error(), err.Error()))
+		}
+	}()
+
+	for {
+		select {
+		case txn, ok := <-transaction:
+			if !ok {
+				wm.log.Println("INFO: exchange channel is closed")
+				wm.close()
+				return
+			}
+			c, ok := wm.consumers[txn.ProductID]
+			if !ok {
+				wm.log.Fatal(domain.ErrCannotListenExchange.Error())
+			}
+
+			c.priceChannel <- domain.Price{Price: txn.Price, Size: txn.Price}
+			wm.log.Println(txn)
+
+		case <-ctx.Done():
+			wm.log.Println("WARN: Received cancellation signal, closing consumers!")
+			wm.close()
+			return
+		}
+	}
+}
+
+func (wm *watchMatcherUseCase) close() {
+	for _, sub := range wm.consumers {
+		close(sub.priceChannel)
+	}
+	wm.log.Println("INFO: consumers are closed")
+}
+
 func (wm *watchMatcherUseCase) setupSubscriptions(windowSize int) {
-	tps := make(map[string]subscription)
+	tps := make(map[string]consumer)
 	wm.wg.Add(len(wm.exchange.GetSubscriptions()))
 
 	for _, name := range wm.exchange.GetSubscriptions() {
@@ -87,21 +98,24 @@ func (wm *watchMatcherUseCase) setupSubscriptions(windowSize int) {
 			WindowSize: windowSize,
 		}
 		incomingMatches := make(chan domain.Price)
-		sub := subscription{tradingPair: &tp, priceChannel: incomingMatches}
+		cm := consumer{tradingPair: &tp, priceChannel: incomingMatches}
 		go func() {
 			defer wm.wg.Done()
-			defer wm.log.Printf("Terminei a goroutinen do: %s", name)
-			sub.listen(incomingMatches, wm.log)
+			defer wm.log.Printf("Finish goroutine: %d", consumerID())
+			cm.listen(incomingMatches, wm.log)
 		}()
-		tps[name] = sub
+		tps[name] = cm
 	}
-	wm.subscriptions = tps
+	wm.consumers = tps
 }
 
-func (wm *watchMatcherUseCase) GetVWAP() map[string]float64 {
-	vwap := make(map[string]float64)
-	for _, subscription := range wm.subscriptions {
-		vwap[subscription.tradingPair.Name] = subscription.tradingPair.VWAP()
+func consumerID() int {
+	var buf [64]byte
+	n := runtime.Stack(buf[:], false)
+	idField := strings.Fields(strings.TrimPrefix(string(buf[:n]), "goroutine "))[0]
+	id, err := strconv.Atoi(idField)
+	if err != nil {
+		panic(fmt.Sprintf("cannot get goroutine id: %v", err))
 	}
-	return vwap
+	return id
 }

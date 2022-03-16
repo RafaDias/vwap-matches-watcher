@@ -1,6 +1,7 @@
 package watchmatches
 
 import (
+	"context"
 	"github.com/rafadias/crypto-watcher/internal/infra/providers/exchange/memory"
 	"github.com/stretchr/testify/assert"
 	"log"
@@ -14,13 +15,14 @@ func TestWatchMatcherUseCase_Execute(t *testing.T) {
 	inmemoryExchange := memory.New(subscriptions, channels)
 	log := log.New(os.Stdout, "Running tests: ", log.LstdFlags|log.Lmicroseconds|log.Lshortfile)
 	svc := New(log, inmemoryExchange)
-	svc.Execute(1)
+	svc.Execute(1, context.Background())
+	svc.wg.Wait()
 
 	vwaps := svc.GetVWAP()
 	log.Println(vwaps)
 
-	assert.Equal(t,  10.0, vwaps["BTC-USD"])
-	assert.Equal(t,  10.0, vwaps["ETH-BTC"])
-	assert.Equal(t,  20.0, vwaps["ETH-USD"])
+	assert.Equal(t, 10.0, vwaps["BTC-USD"])
+	assert.Equal(t, 10.0, vwaps["ETH-BTC"])
+	assert.Equal(t, 20.0, vwaps["ETH-USD"])
 
 }
