@@ -1,8 +1,10 @@
 .circleci/
 .git/
 .dockerignore
+.images
 .gitignore
-build/package
-deployments/k8s
+build/
+deployments/
+configs
 Makefile
 README.md
