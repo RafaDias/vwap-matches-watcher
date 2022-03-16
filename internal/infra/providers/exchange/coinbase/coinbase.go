@@ -10,11 +10,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/domain"
-	"golang.org/x/net/websocket"
-)
-
-const (
-	host = "http://localhost"
 )
 
 type service struct {
@@ -67,11 +62,12 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 	}
 }
 
-func New(config exchange.Config, dial bool) (exchange.Service, error) {
+func New(config exchange.Config, log *log.Logger, dial bool) (exchange.Service, error) {
 	svc := &service{
 		channels:      config.Channels,
 		subscriptions: config.Subscriptions,
 		dial:          dial,
+		log:           log,
 	}
 	if dial {
 		conn, _, err := websocket.DefaultDialer.Dial(config.BaseURL, nil)

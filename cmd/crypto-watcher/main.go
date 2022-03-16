@@ -64,7 +64,7 @@ func run(log *log.Logger) error {
 		BaseURL:       cfg.Exchange.BaseURL,
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
-	}, true)
+	}, log, true)
 	if err != nil {
 		log.Println("Err trying to create a coinbase instance", err)
 		return err

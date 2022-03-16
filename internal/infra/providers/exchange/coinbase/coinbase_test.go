@@ -7,6 +7,7 @@ import (
 	"github.com/rafadias/crypto-watcher/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"log"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -20,12 +21,13 @@ func TestService_Connect_With_Correct_Values(t *testing.T) {
 	}
 
 	cfg := config.New()
+	log := log.New(os.Stdout, "testing", log.Lshortfile)
 
 	svc, err := New(exchange.Config{
 		BaseURL:       cfg.Exchange.BaseURL,
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
-	}, true)
+	}, log, true)
 
 	assert.Nil(t, err)
 	assert.Equal(t, cfg.Exchange.Subscriptions, svc.GetSubscriptions())
@@ -37,31 +39,34 @@ func TestService_WrongConnectionMustReturnAnError(t *testing.T) {
 	}
 
 	cfg := config.New()
+	log := log.New(os.Stdout, "testing", log.Lshortfile)
 
 	_, err := New(exchange.Config{
 		BaseURL:       "wss:/wrong-host/with-wrong-path",
 		Channels:      cfg.Exchange.Channels,
 		Subscriptions: cfg.Exchange.Subscriptions,
-	}, true)
+	}, log, true)
 
 	assert.NotNil(t, err)
 }
 
 func TestService_GetChannels(t *testing.T) {
 	channels := []string{"first-channel"}
+	log := log.New(os.Stdout, "testing", log.Lshortfile)
 
 	svc, _ := New(exchange.Config{
 		Channels: channels,
-	}, false)
+	}, log, false)
 	assert.Equal(t, channels, svc.GetChannels())
 }
 
 func TestService_GetSubscriptions(t *testing.T) {
 	subscriptions := []string{"subs1", "subs2"}
+	log := log.New(os.Stdout, "testing", log.Lshortfile)
 
 	svc, _ := New(exchange.Config{
 		Subscriptions: subscriptions,
-	}, false)
+	}, log, false)
 	assert.Equal(t, subscriptions, svc.GetSubscriptions())
 }
 
