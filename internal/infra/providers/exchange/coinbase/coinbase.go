@@ -39,6 +39,7 @@ func (s *service) GetSubscriptions() []string {
 
 func (s *service) ListenTransactions(c chan domain.Transaction) error {
 	defer close(c)
+	defer s.client.Close()
 
 	if _, err := s.subscribe(); err != nil {
 		return err
