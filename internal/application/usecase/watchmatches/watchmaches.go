@@ -71,7 +71,6 @@ func (wm *watchMatcherUseCase) watch(ctx context.Context) {
 			}
 
 			c.priceChannel <- domain.Price{Price: txn.Price, Size: txn.Price}
-			wm.log.Println(txn)
 
 		case <-ctx.Done():
 			wm.log.Println("WARN: Received cancellation signal, closing consumers!")
