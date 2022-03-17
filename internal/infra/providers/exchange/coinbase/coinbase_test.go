@@ -1,14 +1,19 @@
 package coinbase
 
 import (
+	"encoding/json"
+	"github.com/gorilla/websocket"
 	"github.com/joho/godotenv"
 	"github.com/rafadias/crypto-watcher/internal/application/providers/exchange"
 	"github.com/rafadias/crypto-watcher/internal/config"
 	"github.com/rafadias/crypto-watcher/internal/domain"
+	"github.com/rafadias/crypto-watcher/internal/infra/websocketserver"
 	"github.com/stretchr/testify/assert"
 	"log"
 	"os"
 	"strconv"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -124,4 +129,57 @@ func TestSubscribe(t *testing.T) {
 	assert.Equal(t, Subscribe, msg.Type)
 	assert.Equal(t, subscriptions, msg.ProductIDs)
 	assert.Equal(t, channels, msg.Channels)
+}
+
+func TestService_ListenTransactions(t *testing.T) {
+	svr := websocketserver.New()
+	log := log.New(os.Stdout, "testing", log.Lshortfile)
+
+	// Convert http://127.0.0.1 to ws://127.0.0.
+	u := "ws" + strings.TrimPrefix(svr.URL(), "http")
+
+	// Connect to the server
+	ws, _, err := websocket.DefaultDialer.Dial(u, nil)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+	defer ws.Close()
+
+	coinbase, err := New(exchange.Config{
+		BaseURL:       u,
+		Channels:      []string{"channels"},
+		Subscriptions: []string{"subs"},
+	}, log, true)
+	if err != nil {
+		return
+	}
+
+	transaction := make(chan domain.Transaction)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := coinbase.ListenTransactions(transaction)
+		if err != nil {
+			log.Print("Error trying to listen")
+		}
+	}()
+
+	now := time.Now()
+	response := Response{Size: "1.0", Price: "3.0", Type: Match, Time: now}
+	expectedTxn := domain.Transaction{Size: 1.0, Price: 3.0, Time: now}
+	responseJson, err := json.Marshal(response)
+	err = ws.WriteMessage(websocket.TextMessage, responseJson)
+	if err != nil {
+		t.Fatalf("%v", err)
+	}
+
+	txn, ok := <-transaction
+	if !ok {
+		t.Fatalf("msg was not received")
+	}
+	assert.Equal(t, expectedTxn.Price, txn.Price)
+	assert.Equal(t, expectedTxn.Size, txn.Size)
+	assert.True(t, expectedTxn.Time.Equal(txn.Time))
 }
