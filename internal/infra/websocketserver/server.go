@@ -2,7 +2,6 @@
 package websocketserver
 
 import (
-	"fmt"
 	"github.com/gorilla/websocket"
 	"net/http"
 	"net/http/httptest"
@@ -32,7 +31,6 @@ func New() *server {
 }
 
 func (h *hub) echo(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Entrou")
 	c, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return
