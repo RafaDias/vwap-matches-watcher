@@ -43,8 +43,8 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 	for {
 		_, msg, err := s.client.ReadMessage()
 		if err != nil {
-			s.log.Println(fmt.Errorf("fail to read incoming message: %v", err))
-			return err
+			s.log.Println(fmt.Errorf("fail to read, reason: %v", err))
+			break
 		}
 
 		var response Response
@@ -60,6 +60,7 @@ func (s *service) ListenTransactions(c chan domain.Transaction) error {
 			c <- trx
 		}
 	}
+	return nil
 }
 
 func New(config exchange.Config, log *log.Logger, dial bool) (exchange.Service, error) {
