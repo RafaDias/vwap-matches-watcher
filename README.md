@@ -4,6 +4,10 @@ Find vwap given subscriptions
 
 [![CircleCI](https://circleci.com/gh/RafaDias/vwap-matches-watcher/tree/main.svg?style=shield)](https://circleci.com/gh/RafaDias/vwap-matches-watcher/tree/main)
 
+## How It Works
+
+![Tutorial](.images/getting-started.webm)
+
 ## How to config?
 1. Clone the repository
 2. Copy the .env.example in root directory with name .env
@@ -16,11 +20,10 @@ cp configs/.env.example .env
 
 ## How to run?
 
+In the root directory, choose one of the environments below and run the commands:
 
 <details>
 <summary>Locally</summary>
-
-  Just run this command in your terminal:
 
 ```sh
 make run
@@ -30,8 +33,6 @@ make run
 <details>
 <summary>Docker</summary>
 
-  Just run this command in your terminal:
-
 ```sh
 make build
 docker run crypto-watcher:1.0.0
@@ -40,8 +41,6 @@ docker run crypto-watcher:1.0.0
 
 <details>
 <summary>KIND (Kubernetes in docker)</summary>
-  
-  Just run this commands in your terminal:
 
 ```sh
 make build      # creates a docker image for crypto-watcher 
@@ -51,9 +50,6 @@ make kind-apply # Create a deployment with that image
 make kind-logs  # Get logs from pods
 ```
 </details>
-
-## How It Works
-TBD.
 
 ## The Architecture
 ### Overview
