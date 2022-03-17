@@ -6,7 +6,7 @@ Find vwap given subscriptions
 
 ## How It Works
 
-![Tutorial](.images/getting-started.gif)
+![Tutorial](.static/getting-started.gif)
 
 ## How to config?
 1. Clone the repository
@@ -53,7 +53,7 @@ make kind-logs  # Get logs from pods
 
 ## The Architecture
 ### Overview
-![Alt text](.images/diagram.svg)
+![Alt text](.static/diagram.svg)
 
 
 This project was developed following the principles of `clean architecture` and golang standard layout:
@@ -70,9 +70,25 @@ The source code is organized as follows:
 - [domain](internal/domain) - The heart of the application. Contains the business rules.
 - [infra](internal/infra) - It is the "dirtiest" layer of the project. Contains implementations of domain layer abstractions
 
-## Demo
-  TBD.
+## Development process
+I started the project focused on the domain. I used unit tests to validate the concepts, and I thought of two structures: Price and Transaction.  
+The transaction acts as an anti-corruption layer, so the outer layers do not use Price directly.  
+This gives me more flexibility to change my domain without breaking contracts.
 
+So I thought of the exchange service abstraction. I like working with interfaces because they make testing easier,
+as I can inject test services and validate integrations.
+
+I used a mock server to test WebSocket communication that just sends a message in the coinbase message format.
+
+As it is not recommended to use external libraries only for testing and building, I did not use the decimal library, which is widely used to deal with floating points.
+Working with default float can generate inaccurate results. I decided to keep it in float for simplicity, but I was could use big.Rat as well.
+
+I even used https://www.piesocket.com/websocket-tester
+to test the resiliency of the service when there is an unexpected shutdown.
+
+That's it. Thanks for reading!
+
+![](https://media.giphy.com/media/el7VG1XOOvi24oRXFt/giphy.gif)
 
 ## Author
 - [Rafael Dias](https://www.linkedin.com/in/rafaeldiasmello/)
