@@ -1,3 +1,4 @@
+// Package websocketserver implements a server for integration testing purposes
 package websocketserver
 
 import (
@@ -8,17 +9,6 @@ import (
 )
 
 var upgrader = websocket.Upgrader{}
-
-type connection struct {
-	// The websocket connection.
-	ws *websocket.Conn
-
-	// Buffered channel of outbound messages.
-	send chan []byte
-
-	// The hub.
-	h *hub
-}
 
 type hub struct {
 	connections []*websocket.Conn

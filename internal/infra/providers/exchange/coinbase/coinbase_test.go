@@ -169,8 +169,8 @@ func TestService_ListenTransactions(t *testing.T) {
 	now := time.Now()
 	response := Response{Size: "1.0", Price: "3.0", Type: Match, Time: now}
 	expectedTxn := domain.Transaction{Size: 1.0, Price: 3.0, Time: now}
-	responseJson, err := json.Marshal(response)
-	err = ws.WriteMessage(websocket.TextMessage, responseJson)
+	responseJSON, _ := json.Marshal(response)
+	err = ws.WriteMessage(websocket.TextMessage, responseJSON)
 	if err != nil {
 		t.Fatalf("%v", err)
 	}
