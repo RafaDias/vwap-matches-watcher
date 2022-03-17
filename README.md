@@ -6,7 +6,7 @@ Find vwap given subscriptions
 
 ## How It Works
 
-![Tutorial](.images/getting-started.webm)
+![Tutorial](.images/getting-started.gif)
 
 ## How to config?
 1. Clone the repository
